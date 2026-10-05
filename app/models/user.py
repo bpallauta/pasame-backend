@@ -10,6 +10,9 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     name = Column(String, nullable=False)
     
+    # Rol para jerarquías ("user" o "admin")
+    role = Column(String, default="user", nullable=False)
+    
     # Para recibir transferencias (fase posterior)
     bank_name = Column(String, nullable=True)
     account_type = Column(String, nullable=True)
@@ -19,3 +22,4 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+

@@ -7,3 +7,5 @@ pyjwt
 alembic
 psycopg2-binary
 openai
+
+python-multipart
