@@ -13,28 +13,33 @@ router = APIRouter()
 
 @router.post("/register", response_model=UserResponse)
 def register(user_in: UserCreate, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == user_in.email).first()
-    if user:
-        raise HTTPException(
-            status_code=400,
-            detail="El correo electrónico ya está registrado en el sistema."
-        )
-    
-    # El primer usuario registrado será admin por defecto (para facilitar pruebas), el resto serán users.
-    is_first_user = db.query(User).count() == 0
-    role = "admin" if is_first_user else "user"
+    try:
+        user = db.query(User).filter(User.email == user_in.email).first()
+        if user:
+            raise HTTPException(
+                status_code=400,
+                detail="El correo electrónico ya está registrado en el sistema."
+            )
+        
+        # El primer usuario registrado será admin por defecto (para facilitar pruebas), el resto serán users.
+        is_first_user = db.query(User).count() == 0
+        role = "admin" if is_first_user else "user"
 
-    hashed_password = get_password_hash(user_in.password)
-    db_user = User(
-        email=user_in.email,
-        name=user_in.name,
-        hashed_password=hashed_password,
-        role=role
-    )
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
-    return db_user
+        hashed_password = get_password_hash(user_in.password)
+        db_user = User(
+            email=user_in.email,
+            name=user_in.name,
+            hashed_password=hashed_password,
+            role=role
+        )
+        db.add(db_user)
+        db.commit()
+        db.refresh(db_user)
+        return db_user
+    except Exception as e:
+        import traceback
+        error_trace = traceback.format_exc()
+        raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)} \n {error_trace}")
 
 @router.post("/login", response_model=Token)
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
